@@ -1,7 +1,27 @@
 <?php
 
+function getPdo()
+{
 
 
+    $pass = "clxHWTc1w]es5UiG";
+    $user = "michel";
+    $dbhost = "localhost";
+    $dbname = "jeanmichel";
+
+
+    $pdo = new \PDO(
+        "mysql:host=$dbhost;dbname=$dbname",
+        $user,
+        $pass,
+        [
+            \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+            \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC
+        ]
+    );
+
+    return $pdo;
+}
 function getMessage()
 {
     $message = "Visiteur";
@@ -19,7 +39,35 @@ function getMessage()
     return $message;
 }
 
+function getTrucs()
+{
 
+    $pdo = getPdo();
+    $query = $pdo->prepare("SELECT * FROM trucs");
+    $query->execute();
+
+    return $query->fetchAll();
+}
+function newTruc( $name,  $content)
+{
+    $pdo = getPdo();
+    $query = $pdo->prepare("INSERT INTO trucs SET name=:name, content= :content");
+    $query->execute([
+            "name"=>$name,
+            "content"=>$content
+    ]);
+
+}
+
+$name = null;
+$content = null;
+
+if(isset($_POST['name']) && !empty($_POST['name'])) {$name = htmlspecialchars($_POST['name']);}
+if(isset($_POST['content']) && !empty($_POST['content'])) {$content = htmlspecialchars($_POST['content']);}
+
+if($name && $content){
+    newTruc($name,$content);
+}
 
 
 ?>
@@ -49,6 +97,31 @@ function getMessage()
         <button type="submit">OK</button>
     </div>
 </form>
+<hr>
+<hr>
+
+
+<form action="index.php" method="post">
+    <div><input type="text" name="name" placeholder = "enter the name"></div>
+    <div><input type="text" name="content" placeholder = "enter the content"></div>
+    <div>
+        <button type="submit">post</button>
+    </div>
+</form>
+
+<div class="trucs">
+
+    <?php foreach (getTrucs() as $truc): ?>
+
+    <div style="border : 2px solid black">
+        <p><strong><?= $truc['name'] ?></strong></p>
+        <p>Le contenu : <?= $truc['content'] ?></p>
+
+
+    </div>
+
+    <?php endforeach; ?>
+</div>
 
 </body>
 </html>
